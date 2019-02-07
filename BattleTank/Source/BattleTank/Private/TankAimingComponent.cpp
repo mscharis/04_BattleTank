@@ -4,6 +4,7 @@
 #include "Classes/Kismet/GameplayStatics.h"
 #include "Components/ActorComponent.h"
 #include "TankBarrel.h"
+#include "TankTurret.h"
 
 // Sets default values for this component's properties
 UTankAimingComponent::UTankAimingComponent()
@@ -17,11 +18,19 @@ UTankAimingComponent::UTankAimingComponent()
 
 void UTankAimingComponent::SetBarrelReference(UTankBarrel* BarrelToSet)
 {
+	if (!BarrelToSet) { return; }
 	Barrel = BarrelToSet;
+}
+
+void UTankAimingComponent::SetTurretReference(UTankTurret* TurretToSet)
+{
+	if (!TurretToSet) { return; }
+	Turret = TurretToSet;
 }
 
 void UTankAimingComponent::AimAt(FVector OutHitLocation, float LaunchSpeed)
 {
+	if (!Turret) { return; }
 	if (!Barrel) { return; }
 
 	FVector OutLaunchVelocity(0);
@@ -41,16 +50,16 @@ void UTankAimingComponent::AimAt(FVector OutHitLocation, float LaunchSpeed)
 	if (bHaveAimSolution)
 	{
 		auto AimDirection = OutLaunchVelocity.GetSafeNormal();
-		MoveBarrelTowards(AimDirection);
+		MoveBarrelTowards(AimDirection);		
 		
 		auto Time = GetWorld()->GetTimeSeconds();
-		UE_LOG(LogTemp, Warning, TEXT("%f: aim solution found"), Time);
+		//UE_LOG(LogTemp, Warning, TEXT("%f: aim solution found"), Time);
 	}
 	else
 	{
 		// If no solution found: do nothing
 		auto Time = GetWorld()->GetTimeSeconds();
-		UE_LOG(LogTemp, Warning, TEXT("%f: no aim solution found"), Time);
+		//UE_LOG(LogTemp, Warning, TEXT("%f: no aim solution found"), Time);
 	}
 }
 
@@ -60,7 +69,6 @@ void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection)
 	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
-	UE_LOG(LogTemp, Warning, TEXT("AimAsRotator: %s"), *AimAsRotator.ToString());
-
-	Barrel->Elevate(1); // TODO remove magic number
+	Barrel->Elevate(DeltaRotator.Pitch);
+	Turret->Yaw(DeltaRotator.Yaw);
 }
