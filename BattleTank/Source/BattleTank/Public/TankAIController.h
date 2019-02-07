@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "Public/Tank.h"
 #include "TankAIController.generated.h"
+
+// Forward declaration
+class ATank;
 
 /**
  * 
